@@ -8,7 +8,6 @@ void bubblesort_parallel(vector<int> &arr)
 {
     for(int i=0;i<arr.size();i++)
     {
-        #pragma omp parallel for
         for(int j=0;j<arr.size()-i-1;j++)
         {
             
