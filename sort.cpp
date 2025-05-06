@@ -4,39 +4,25 @@
 using namespace std;
 using namespace std::chrono;
 
-void bubblesort_parallel(vector<int> &arr)
+void bubblesort(vector<int> & arr)
 {
+    int n=arr.size();
+ 
     for(int i=0;i<arr.size();i++)
     {
-        for(int j=0;j<arr.size()-i-1;j++)
+        for(int j=0;j<n-i-1;j++)
         {
             
             if(arr[j]>arr[j+1])
-            {
                 #pragma omp critical
                 swap(arr[j],arr[j+1]);
-            }
         }
     }
+   
 }
-
-void bubblesort(vector<int> &arr)
+void merge(vector<int> & arr,int start,int end,int mid)
 {
-    for(int i=0;i<arr.size();i++)
-    {
-        for(int j=0;j<arr.size()-i-1;j++)
-        {
-            if(arr[j]>arr[j+1])
-            {
-                swap(arr[j],arr[j+1]);
-            }
-        }
-    }
-}
-
-void merge(vector<int> &arr, int start, int end,int mid)
-{
-    vector<int> L;
+    vector<int>L;
     vector<int> R;
     for(int i=start;i<=mid;i++)
     {
@@ -46,18 +32,14 @@ void merge(vector<int> &arr, int start, int end,int mid)
     {
         R.push_back(arr[i]);
     }
-    int i=0;
-    int j=0;
-    int k=start;
+    int i=0,j=0,k=start;
     while(i<L.size() && j<R.size())
     {
         if(L[i]<=R[j])
-        {
             arr[k]=L[i++];
-        }
         else
-        arr[k]=R[j++];
-        k++;
+            arr[k]=R[j++];
+        k++;      
     }
     while(i<L.size())
     {
@@ -67,62 +49,45 @@ void merge(vector<int> &arr, int start, int end,int mid)
     {
         arr[k++]=R[j++];
     }
-
 }
-void mergesort(vector<int> &arr,int start, int end)
+void mergesort(vector<int> & arr,int start,int end)
 {
     if(start<end)
     {
-        int mid=(start+end)/2;
-        #pragma omp parallel sections
-        {
-            #pragma omp section
-        mergesort(arr,start,mid);
+       int mid=(start+end)/2;
+       #pragma omp parallel  sections
+       {
         #pragma omp section
-        mergesort(arr,mid+1,end);
-        merge(arr,start,end,mid);
-        }
+       mergesort(arr,start,mid);
+       #pragma omp section
+       mergesort(arr,mid+1,end);
+}
+merge(arr,start,end,mid);
     }
 }
 int main()
 {
-    vector<int> n={100,200,3,-9};
+    vector<int> a={100,200,9,4,5,-1,240,140,3,45,9,10};
+    vector<int> a1=a;
     auto start=high_resolution_clock::now();
-    mergesort(n,0,n.size()-1);
-    auto end=high_resolution_clock::now();
-    auto dur=duration_cast<microseconds>(end-start);
-    cout<<dur.count();
-    for(auto i:n)
-        cout<<"--"<<i;
+    bubblesort(a);
+    auto s=high_resolution_clock::now();
+    auto d=duration_cast<microseconds>(s-start).count();
+    cout<<"---"<<d;
+    for(int i=0;i<a.size();i++)
+    {
+        cout<<a[i]<<" ";
+    }
+    cout<<endl;
+    
+    auto stt=high_resolution_clock::now();
+    mergesort(a1,0,a1.size()-1);
+    auto stat=high_resolution_clock::now();
+    auto l=duration_cast<microseconds>(stat-stt).count();
+    cout<<"---"<<l;
+    for(int i=0;i<a1.size();i++)
+    {
+        cout<<a1[i]<<" ";
+    }
+
 }
-
-
-
-// vector<int> arr1 = original;
-// auto start1 = high_resolution_clock::now();
-// bubblesort(arr1);
-// auto end1 = high_resolution_clock::now();
-// cout << "Bubble Sort (Sequential): " << duration_cast<microseconds>(end1 - start1).count() << " microseconds\n";
-
-// // Bubble Sort Parallel
-// vector<int> arr2 = original;
-// auto start2 = high_resolution_clock::now();
-// bubblesort_parallel(arr2);
-// auto end2 = high_resolution_clock::now();
-// cout << "Bubble Sort (Parallel): " << duration_cast<microseconds>(end2 - start2).count() << " microseconds\n";
-
-// // Merge Sort
-// vector<int> arr3 = original;
-// auto start3 = high_resolution_clock::now();
-// mergesort(arr3, 0, arr3.size() - 1);
-// auto end3 = high_resolution_clock::now();
-// cout << "Merge Sort (Sequential): " << duration_cast<microseconds>(end3 - start3).count() << " microseconds\n";
-
-// // Merge Sort Parallel
-// vector<int> arr4 = original;
-// auto start4 = high_resolution_clock::now();
-// mergesort_parallel(arr4, 0, arr4.size() - 1);
-// auto end4 = high_resolution_clock::now();
-// cout << "Merge Sort (Parallel): " << duration_cast<microseconds>(end4 - start4).count() << " microseconds\n";
-
-// return 0;
